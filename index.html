@@ -549,7 +549,8 @@ async function classifyText(text) {
       max_tokens: 60,
       system: `텍스트를 읽고 JSON만 반환해. 다른 텍스트 없이.
 카테고리: todo(할 일/태스크), content(영상/기사/링크/볼거리), info(정보/정리글/메모), idea(아이디어/생각)
-형식: {"category":"todo","summary":"한줄요약20자이내"}`,
+summary는 핵심 내용을 3~5줄로 깔끔하게 정리해. 줄바꿈은 \n 사용.
+형식: {"category":"todo","summary":"정리된 내용"}`,
       messages: [{ role: 'user', content: text.slice(0, 600) }]
     })
   });
@@ -567,7 +568,8 @@ async function classifyImage(base64, mime) {
       max_tokens: 1000,
       system: `이미지에서 텍스트를 추출하고 JSON만 반환해. 다른 텍스트 없이.
 카테고리: todo(할 일/태스크), content(영상/기사/볼거리), info(정보/정리글), idea(아이디어/생각)
-형식: {"category":"info","summary":"한줄요약20자이내","extracted":"추출된 텍스트 전체"}`,
+summary는 핵심 내용을 3~5줄로 깔끔하게 정리해. 줄바꿈은 \n 사용.
+형식: {"category":"info","summary":"정리된 내용","extracted":"추출된 텍스트 전체"}`,
       messages: [{
         role: 'user',
         content: [
@@ -697,7 +699,7 @@ function render() {
       </div>
       <div class="item-body">
         ${item.imgSrc ? `<img class="item-img" src="${item.imgSrc}" alt="캡처">` : ''}
-        <div class="item-text">${item.text.length > 160 ? item.text.slice(0, 160) + '…' : item.text}</div>
+        <div class="item-text" style="white-space:pre-line">${item.summary || item.text}</div>
         <div class="item-meta">
           <span class="badge ${b.cls}">${b.label}</span>
           ${item.summary ? `<span class="item-summary">${item.summary}</span>` : ''}
