@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>콜렉터</title>
+<!--
+  MIT License
+  Copyright (c) 2026 bromsukrhur
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+-->
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f9f9f7;
+    --surface: #ffffff;
+    --surface2: #f3f3f0;
+    --border: rgba(0,0,0,0.1);
+    --border2: rgba(0,0,0,0.18);
+    --text: #1a1a1a;
+    --text2: #555;
+    --text3: #999;
+    --accent: #185FA5;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1e;
+      --surface: #2c2c2e;
+      --surface2: #3a3a3c;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.2);
+      --text: #f2f2f7;
+      --text2: #aeaeb2;
+      --text3: #636366;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 16px 80px;
+  }
+
+  /* Header */
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .app-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .app-count {
+    font-size: 12px;
+    color: var(--text3);
+    background: var(--surface2);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* Input area */
+  .input-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+
+  .input-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .input-tab {
+    font-size: 13px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .input-tab.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 80px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--text);
+    font-family: inherit;
+    resize: none;
+    outline: none;
+    line-height: 1.6;
+    transition: border-color 0.15s;
+  }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--text3); }
+
+  /* Image upload */
+  .img-upload-area {
+    display: none;
+    border: 2px dashed var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 28px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    position: relative;
+  }
+  .img-upload-area:hover, .img-upload-area.drag { border-color: var(--accent); background: rgba(24,95,165,0.04); }
+  .img-upload-area.active { display: block; }
+  .img-upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .upload-icon { font-size: 28px; margin-bottom: 8px; }
+  .upload-label { font-size: 14px; color: var(--text2); }
+  .upload-hint { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+  .img-preview-wrap {
+    display: none;
+    position: relative;
+    margin-top: 10px;
+  }
+  .img-preview-wrap img {
+    width: 100%;
+    border-radius: var(--radius-sm);
+    max-height: 180px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+  .img-clear {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    border: none;
+  }
+
+  .input-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  .input-hint { font-size: 12px; color: var(--text3); }
+  .btn-add {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .btn-add:hover { opacity: 0.88; }
+  .btn-add:active { transform: scale(0.97); }
+  .btn-add:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* Stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    text-align: center;
+  }
+  .stat-num { font-size: 22px; font-weight: 700; color: var(--accent); }
+  .stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* Filter tabs */
+  .filter-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .filter-tabs::-webkit-scrollbar { display: none; }
+  .ftab {
+    font-size: 13px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .ftab.active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+
+  /* Items */
+  .items { display: flex; flex-direction: column; gap: 8px; }
+
+  .item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    transition: opacity 0.2s;
+  }
+  .item.done { opacity: 0.4; }
+
+  .item-check {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border2);
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 1px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .item-check.checked { background: var(--accent); border-color: var(--accent); }
+  .check-svg { display: none; }
+  .item-check.checked .check-svg { display: block; }
+
+  .item-body { flex: 1; min-width: 0; }
+
+  .item-img {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    max-height: 140px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+
+  .item-text {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.55;
+    word-break: break-word;
+  }
+  .item.done .item-text { text-decoration: line-through; color: var(--text3); }
+
+  .item-meta {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 7px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  .b-todo    { background: #EEEDFE; color: #3C3489; }
+  .b-content { background: #E1F5EE; color: #085041; }
+  .b-info    { background: #E6F1FB; color: #0C447C; }
+  .b-idea    { background: #FAEEDA; color: #633806; }
+  .b-loading { background: var(--surface2); color: var(--text3); }
+
+  .item-summary { font-size: 12px; color: var(--text2); }
+  .item-time { font-size: 11px; color: var(--text3); margin-left: auto; }
+
+  .item-del {
+    font-size: 13px;
+    color: var(--text3);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .item-del:hover { color: var(--text2); background: var(--surface2); }
+
+  .empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text3);
+    font-size: 14px;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--text);
+    color: var(--bg);
+    font-size: 13px;
+    padding: 10px 20px;
+    border-radius: 20px;
+    transition: transform 0.25s ease;
+    z-index: 99;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Footer */
+  .app-footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 32px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="app-header">
+    <div class="app-title">📦 콜렉터</div>
+    <div class="app-count" id="totalCount">0개</div>
+  </div>
+
+  <!-- API Key -->
+  <div id="apiKeyBanner" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">🔑 Anthropic API 키 (기기에만 저장됨)</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="apiKeyInput" type="password" placeholder="sk-..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;color:var(--text);font-family:inherit;outline:none">
+      <button onclick="saveApiKey()" style="background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer">저장</button>
+    </div>
+    <div id="apiKeyStatus" style="font-size:12px;margin-top:6px;color:var(--text3)"></div>
+  </div>
+
+  <!-- Input card -->
+  <div class="input-card">
+    <div class="input-tabs">
+      <button class="input-tab active" onclick="switchInputTab('text', this)">텍스트</button>
+      <button class="input-tab" onclick="switchInputTab('image', this)">이미지</button>
+    </div>
+
+    <textarea id="textInput" placeholder="여기에 붙여넣기 (Ctrl+V) — 할 일, 정보, 아이디어, 링크 모두 OK&#10;Ctrl+Enter로 빠르게 추가"></textarea>
+
+    <div class="img-upload-area" id="imgUploadArea">
+      <input type="file" id="imgFileInput" accept="image/*" onchange="handleFileSelect(event)">
+      <div class="upload-icon">🖼️</div>
+      <div class="upload-label">이미지를 드래그하거나 탭해서 선택</div>
+      <div class="upload-hint">스크린샷, 캡처 이미지 → AI가 텍스트 추출 후 분류</div>
+    </div>
+
+    <div class="img-preview-wrap" id="imgPreviewWrap">
+      <img id="imgPreview" src="" alt="preview">
+      <button class="img-clear" onclick="clearImage()">✕</button>
+    </div>
+
+    <div class="input-footer">
+      <span class="input-hint" id="inputHint">Ctrl+Enter로 추가</span>
+      <button class="btn-add" id="addBtn" onclick="addItem()">추가</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats" id="statsArea" style="display:none">
+    <div class="stat">
+      <div class="stat-num" id="statTodo">0</div>
+      <div class="stat-label">할 일 남음</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="statDone">0</div>
+      <div class="stat-label">완료</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="statSaved">0</div>
+      <div class="stat-label">저장됨</div>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-tabs">
+    <button class="ftab active" onclick="setFilter('all', this)">전체</button>
+    <button class="ftab" onclick="setFilter('todo', this)">✅ 할 일</button>
+    <button class="ftab" onclick="setFilter('content', this)">🎬 콘텐츠</button>
+    <button class="ftab" onclick="setFilter('info', this)">📌 정보</button>
+    <button class="ftab" onclick="setFilter('idea', this)">💡 아이디어</button>
+  </div>
+
+  <div class="items" id="itemList"></div>
+
+  <div class="app-footer">
+    콜렉터 v1.0 · MIT License © 2026 bromsukrhur<br>
+    Powered by Claude API (api.anthropic.com)
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 설정 ──────────────────────────────────────────────
+const API_BASE = 'https://api.anthropic.com';
+const MODEL    = 'claude-sonnet-4-20250514';
+function getApiKey() { return localStorage.getItem('clipApiKey') || ''; }
+function saveApiKey() {
+  const k = document.getElementById("apiKeyInput").value.trim();
+  if (!k) return;
+  localStorage.setItem("clipApiKey", k);
+  document.getElementById("apiKeyStatus").textContent = "✓ 저장됨";
+  document.getElementById("apiKeyStatus").style.color = "#1D9E75";
+}
+function initApiKeyUI() {
+  const k = getApiKey();
+  if (k) {
+    document.getElementById("apiKeyInput").value = k;
+    document.getElementById("apiKeyStatus").textContent = "✓ 저장된 키 있음";
+    document.getElementById("apiKeyStatus").style.color = "#1D9E75";
+  }
+}
+
+
+// ── 상태 ──────────────────────────────────────────────
+let items      = JSON.parse(localStorage.getItem('clipItems') || '[]');
+let filter     = 'all';
+let inputMode  = 'text'; // 'text' | 'image'
+let imgBase64  = null;
+let imgMime    = 'image/png';
+
+// ── 저장 ──────────────────────────────────────────────
+function save() {
+  localStorage.setItem('clipItems', JSON.stringify(items));
+}
+
+// ── 입력 탭 전환 ──────────────────────────────────────
+function switchInputTab(mode, el) {
+  inputMode = mode;
+  document.querySelectorAll('.input-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('textInput').style.display     = mode === 'text'  ? '' : 'none';
+  document.getElementById('imgUploadArea').classList.toggle('active', mode === 'image');
+  document.getElementById('inputHint').textContent =
+    mode === 'text' ? 'Ctrl+Enter로 추가' : '이미지를 선택하면 AI가 텍스트를 읽어요';
+  if (mode === 'text') clearImage();
+}
+
+// ── 이미지 처리 ───────────────────────────────────────
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  loadImageFile(file);
+}
+
+function loadImageFile(file) {
+  imgMime = 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 800;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else       { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+      imgBase64 = dataUrl.split(',')[1];
+      document.getElementById('imgPreview').src = dataUrl;
+      document.getElementById('imgPreviewWrap').style.display = 'block';
+      document.getElementById('imgUploadArea').style.display  = 'none';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function clearImage() {
+  imgBase64 = null;
+  document.getElementById('imgPreview').src = '';
+  document.getElementById('imgPreviewWrap').style.display = 'none';
+  document.getElementById('imgUploadArea').style.display  = 'block';
+  document.getElementById('imgFileInput').value = '';
+}
+
+// 드래그 앤 드롭
+const uploadArea = document.getElementById('imgUploadArea');
+uploadArea.addEventListener('dragover',  e => { e.preventDefault(); uploadArea.classList.add('drag'); });
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag'));
+uploadArea.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadArea.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadImageFile(file);
+});
+
+// ── AI 분류 ───────────────────────────────────────────
+const AI_HEADERS = () => ({
+  'Content-Type': 'application/json',
+  'x-api-key': getApiKey(),
+  'anthropic-version': '2023-06-01',
+  'anthropic-dangerous-direct-browser-calls': 'true'
+});
+
+async function classifyText(text) {
+  const res = await fetch(`${API_BASE}/v1/messages`, {
+    method: 'POST',
+    headers: AI_HEADERS(),
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 60,
+      system: `텍스트를 읽고 JSON만 반환해. 다른 텍스트 없이.
+카테고리: todo(할 일/태스크), content(영상/기사/링크/볼거리), info(정보/정리글/메모), idea(아이디어/생각)
+형식: {"category":"todo","summary":"한줄요약20자이내"}`,
+      messages: [{ role: 'user', content: text.slice(0, 600) }]
+    })
+  });
+  const d = await res.json();
+  if (d.error) throw new Error(`API오류: ${d.error.message}`);
+  return JSON.parse(d.content[0].text.replace(/```json|```/g, '').trim());
+}
+
+async function classifyImage(base64, mime) {
+  const res = await fetch(`${API_BASE}/v1/messages`, {
+    method: 'POST',
+    headers: AI_HEADERS(),
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 150,
+      system: `이미지에서 텍스트를 추출하고 JSON만 반환해. 다른 텍스트 없이.
+카테고리: todo(할 일/태스크), content(영상/기사/볼거리), info(정보/정리글), idea(아이디어/생각)
+형식: {"category":"info","summary":"한줄요약20자이내","extracted":"추출된 텍스트 전체"}`,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: mime, data: base64 } },
+          { type: 'text', text: '이 이미지의 텍스트를 추출하고 분류해줘.' }
+        ]
+      }]
+    })
+  });
+  const d = await res.json();
+  if (d.error) throw new Error(`API오류: ${d.error.message}`);
+  return JSON.parse(d.content[0].text.replace(/```json|```/g, '').trim());
+}
+
+// ── 아이템 추가 ───────────────────────────────────────
+async function addItem() {
+  const btn  = document.getElementById('addBtn');
+  const text = document.getElementById('textInput').value.trim();
+
+  if (inputMode === 'text' && !text) return;
+  if (inputMode === 'image' && !imgBase64) return;
+
+  btn.disabled = true;
+  btn.textContent = '분류 중...';
+
+  const id      = Date.now();
+  const timeStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+  const item    = {
+    id, text: text || '이미지 분석 중...', category: 'loading',
+    summary: '', done: false, time: timeStr,
+    imgSrc: imgBase64 ? `data:${imgMime};base64,${imgBase64}` : null
+  };
+
+  items.unshift(item);
+  render();
+
+  try {
+    let result;
+    if (inputMode === 'image' && imgBase64) {
+      result = await classifyImage(imgBase64, imgMime);
+      const idx = items.findIndex(i => i.id === id);
+      if (idx > -1) items[idx].text = result.extracted || '(이미지에서 텍스트를 추출했어요)';
+    } else {
+      result = await classifyText(text);
+    }
+    const idx = items.findIndex(i => i.id === id);
+    if (idx > -1) {
+      items[idx].category = result.category || 'info';
+      items[idx].summary  = result.summary  || '';
+    }
+  } catch (e) {
+    const idx = items.findIndex(i => i.id === id);
+    if (idx > -1) items[idx].category = 'info';
+    showToast('오류: ' + (e.message || '알 수 없는 오류'));
+  }
+
+  document.getElementById('textInput').value = '';
+  clearImage();
+  save();
+  render();
+
+  btn.disabled = false;
+  btn.textContent = '추가';
+  showToast('저장됐어요');
+}
+
+// ── 토글 / 삭제 ───────────────────────────────────────
+function toggleDone(id) {
+  const i = items.findIndex(x => x.id === id);
+  if (i > -1) { items[i].done = !items[i].done; save(); render(); }
+}
+function deleteItem(id) {
+  items = items.filter(x => x.id !== id);
+  save(); render();
+}
+
+// ── 필터 ──────────────────────────────────────────────
+function setFilter(f, el) {
+  filter = f;
+  document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+// ── 렌더 ──────────────────────────────────────────────
+const BADGE = {
+  todo:    { label: '할 일',    cls: 'b-todo'    },
+  content: { label: '콘텐츠',  cls: 'b-content' },
+  info:    { label: '정보',     cls: 'b-info'    },
+  idea:    { label: '아이디어', cls: 'b-idea'    },
+  loading: { label: '분류 중…', cls: 'b-loading' }
+};
+
+function render() {
+  const list     = document.getElementById('itemList');
+  const filtered = filter === 'all' ? items : items.filter(i => i.category === filter);
+
+  // stats
+  const todoLeft = items.filter(i => i.category === 'todo' && !i.done).length;
+  const done     = items.filter(i => i.done).length;
+  const saved    = items.length;
+  document.getElementById('statTodo').textContent = todoLeft;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statSaved').textContent = saved;
+  document.getElementById('statsArea').style.display = items.length ? 'grid' : 'none';
+  document.getElementById('totalCount').textContent  = `${saved}개`;
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty">아직 항목이 없어요<br><span style="font-size:12px">텍스트나 이미지를 추가해보세요</span></div>`;
+    return;
+  }
+
+  const showCheck = cat => cat === 'todo' || cat === 'loading';
+  list.innerHTML = filtered.map(item => {
+    const b = BADGE[item.category] || BADGE.loading;
+    return `
+    <div class="item${item.done ? ' done' : ''}">
+      <div class="item-check${item.done ? ' checked' : ''}" onclick="toggleDone(${item.id})" style="${showCheck(item.category) ? '' : 'visibility:hidden'}">
+        <svg class="check-svg" width="10" height="10" viewBox="0 0 10 10" fill="none">
+          <polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="item-body">
+        ${item.imgSrc ? `<img class="item-img" src="${item.imgSrc}" alt="캡처">` : ''}
+        <div class="item-text">${item.text.length > 160 ? item.text.slice(0, 160) + '…' : item.text}</div>
+        <div class="item-meta">
+          <span class="badge ${b.cls}">${b.label}</span>
+          ${item.summary ? `<span class="item-summary">${item.summary}</span>` : ''}
+          <span class="item-time">${item.time}</span>
+        </div>
+      </div>
+      <button class="item-del" onclick="deleteItem(${item.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// ── 토스트 ────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── 키보드 단축키 ─────────────────────────────────────
+document.getElementById('textInput').addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') addItem();
+});
+
+// ── 초기 렌더 ─────────────────────────────────────────
+initApiKeyUI();
+render();
+</script>
+</body>
+</html>
