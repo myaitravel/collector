@@ -564,7 +564,7 @@ async function classifyImage(base64, mime) {
     headers: AI_HEADERS(),
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 150,
+      max_tokens: 1000,
       system: `이미지에서 텍스트를 추출하고 JSON만 반환해. 다른 텍스트 없이.
 카테고리: todo(할 일/태스크), content(영상/기사/볼거리), info(정보/정리글), idea(아이디어/생각)
 형식: {"category":"info","summary":"한줄요약20자이내","extracted":"추출된 텍스트 전체"}`,
