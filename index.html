@@ -295,6 +295,18 @@
   }
   .tchip:hover { border-color: var(--border2); color: var(--text); }
   .tchip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .tchip.intent-todo:not(.active) { color: #dc2626; border-color: rgba(220, 38, 38, 0.25); }
+  .tchip.intent-idea:not(.active) { color: #b45309; border-color: rgba(217, 119, 6, 0.25); }
+  .tchip.intent-ref:not(.active)  { color: var(--accent); border-color: rgba(37, 99, 235, 0.25); }
+  .tchip.intent-q:not(.active)    { color: #7c3aed; border-color: rgba(124, 58, 237, 0.25); }
+  .tchip.intent-log:not(.active)  { color: #16a34a; border-color: rgba(22, 163, 74, 0.25); }
+  @media (prefers-color-scheme: dark) {
+    .tchip.intent-todo:not(.active) { color: #fca5a5; border-color: rgba(248, 113, 113, 0.3); }
+    .tchip.intent-idea:not(.active) { color: #fcd34d; border-color: rgba(251, 191, 36, 0.3); }
+    .tchip.intent-ref:not(.active)  { color: #93c5fd; border-color: rgba(96, 165, 250, 0.3); }
+    .tchip.intent-q:not(.active)    { color: #c4b5fd; border-color: rgba(167, 139, 250, 0.35); }
+    .tchip.intent-log:not(.active)  { color: #86efac; border-color: rgba(74, 222, 128, 0.3); }
+  }
   .tchip-count { font-size: 10px; opacity: 0.7; }
 
   .toolbar {
@@ -388,6 +400,18 @@
   .item-tag:hover {
     background: var(--accent-soft); color: var(--accent);
     border-color: var(--accent);
+  }
+  .item-tag.intent-todo  { background: rgba(220, 38, 38, 0.10); color: #dc2626; }
+  .item-tag.intent-idea  { background: rgba(217, 119, 6, 0.12); color: #b45309; }
+  .item-tag.intent-ref   { background: rgba(37, 99, 235, 0.10); color: var(--accent); }
+  .item-tag.intent-q     { background: rgba(124, 58, 237, 0.10); color: #7c3aed; }
+  .item-tag.intent-log   { background: rgba(22, 163, 74, 0.10); color: #16a34a; }
+  @media (prefers-color-scheme: dark) {
+    .item-tag.intent-todo { background: rgba(248, 113, 113, 0.15); color: #fca5a5; }
+    .item-tag.intent-idea { background: rgba(251, 191, 36, 0.15); color: #fcd34d; }
+    .item-tag.intent-ref  { background: rgba(96, 165, 250, 0.15); color: #93c5fd; }
+    .item-tag.intent-q    { background: rgba(167, 139, 250, 0.18); color: #c4b5fd; }
+    .item-tag.intent-log  { background: rgba(74, 222, 128, 0.15); color: #86efac; }
   }
   .item-tag-add {
     font-size: 11px; padding: 2px 7px; border-radius: 8px;
@@ -496,6 +520,9 @@
       <div class="app-title">콜렉터</div>
     </div>
     <div class="app-actions">
+      <button class="icon-btn" id="aiOrganizeBtn" title="AI로 정리하기" onclick="openOrganizeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6z"/></svg>
+      </button>
       <button class="icon-btn" id="searchBtn" title="검색 ( / )" onclick="toggleSearch()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </button>
@@ -590,8 +617,8 @@
   <div class="items" id="itemList"></div>
 
   <div class="app-footer">
-    콜렉터 v3.1 · MIT License © 2026 bromsukrhur<br>
-    <kbd>/</kbd> 검색 · <kbd>⌘/Ctrl+Enter</kbd> 추가 · <kbd>1~4</kbd> 상태 전환
+    콜렉터 v3.2 · MIT License © 2026 bromsukrhur<br>
+    <kbd>/</kbd> 검색 · <kbd>⌘/Ctrl+Enter</kbd> 추가 · <kbd>1~4</kbd> 상태 · ✨ AI 일괄 정리
   </div>
 </div>
 
@@ -606,6 +633,50 @@
     <div class="modal-actions">
       <button class="modal-btn" onclick="closeTagModal()">취소</button>
       <button class="modal-btn primary" onclick="saveTagEdit()">저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="organizeModal" onclick="closeOrganizeModal()">
+  <div class="modal-card" onclick="event.stopPropagation()" style="max-width:420px">
+    <div class="modal-title">✨ AI로 한꺼번에 정리</div>
+    <div id="organizeBody">
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:14px">
+        AI가 모든 항목을 다시 분석해서 <b>의도(할일/아이디어/참고/질문/기록)</b>와 주제 태그를 정리해드릴게요.
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="color:var(--text2)">대상 항목</span>
+          <b id="orgTargetCount">0개</b>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="color:var(--text2)">예상 시간</span>
+          <span id="orgEstTime">-</span>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--text2);cursor:pointer">
+          <input type="checkbox" id="orgOnlyMissing" checked onchange="updateOrganizePreview()">
+          태그가 없거나 부족한 것만 (추천)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;color:var(--text2);cursor:pointer">
+          <input type="checkbox" id="orgOnlyInbox" onchange="updateOrganizePreview()">
+          인박스만
+        </label>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.5">
+        💡 항목당 약 0.5~1초 소요 · 기존 태그는 가능하면 재사용해요
+      </div>
+    </div>
+    <div id="organizeProgress" style="display:none">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:8px">
+        <span id="orgProgressText">정리 중...</span>
+      </div>
+      <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin-bottom:14px">
+        <div id="orgProgressBar" style="height:100%;background:var(--accent);width:0%;transition:width 0.3s"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" id="orgCancelBtn" onclick="closeOrganizeModal()">취소</button>
+      <button class="modal-btn primary" id="orgStartBtn" onclick="startBulkOrganize()">정리 시작</button>
     </div>
   </div>
 </div>
@@ -783,14 +854,35 @@ function buildSystemPrompt(isImage) {
 
 규칙:
 - summary: 핵심 내용을 2~4줄로 정리. 줄바꿈은 \\n.
-- tags: 1~3개 한국어 태그. 짧고 일반적인 단어 (예: "여행", "맛집", "개발", "운동", "할일", "영감").
-- 새 태그는 정말 필요할 때만 만들어.${tagHint}
+- intent: 다음 중 하나만 골라 → "할일", "아이디어", "참고", "질문", "기록"
+  · 할일: 행동이 필요한 것 (사야 할 것, 해야 할 것)
+  · 아이디어: 떠오른 생각, 영감, 기획
+  · 참고: 나중에 다시 볼 정보, 링크, 자료
+  · 질문: 답을 찾아야 할 의문
+  · 기록: 감정, 일기, 메모
+- tags: intent 외에 1~2개 주제 태그 (예: "여행", "맛집", "개발", "운동"). 한국어, 짧고 일반적.
+- 새 태그는 정말 필요할 때만. 기존 태그 우선 재사용.${tagHint}
 
 형식:
 ${isImage
-    ? '{"summary":"정리된 내용","tags":["태그1","태그2"],"extracted":"이미지에서 추출한 텍스트 전체"}'
-    : '{"summary":"정리된 내용","tags":["태그1","태그2"]}'
+    ? '{"summary":"정리된 내용","intent":"할일","tags":["주제태그"],"extracted":"이미지에서 추출한 텍스트 전체"}'
+    : '{"summary":"정리된 내용","intent":"할일","tags":["주제태그"]}'
   }`;
+}
+
+// AI 결과를 표준화: intent를 tags 맨 앞에 추가
+function normalizeAiResult(result) {
+  const intents = ['할일', '아이디어', '참고', '질문', '기록'];
+  const tags = [];
+  if (result.intent && intents.includes(result.intent)) {
+    tags.push(result.intent);
+  }
+  if (Array.isArray(result.tags)) {
+    result.tags.forEach(t => {
+      if (t && !tags.includes(t) && !intents.includes(t)) tags.push(t);
+    });
+  }
+  return tags.slice(0, 5);
 }
 
 async function classifyText(text) {
@@ -866,7 +958,7 @@ async function addItem() {
     const idx = items.findIndex(i => i.id === id);
     if (idx > -1) {
       items[idx].summary = result.summary || '';
-      items[idx].tags    = Array.isArray(result.tags) ? result.tags.slice(0, 5) : [];
+      items[idx].tags    = normalizeAiResult(result);
     }
   } catch (e) {
     console.error('분류 오류', e);
@@ -1156,16 +1248,150 @@ function bulkArchiveStale() {
   showToast(`${stale.length}개를 보관함으로 옮겼어요`);
 }
 
+// ==================== AI 일괄 정리 ====================
+let organizeAbort = false;
+
+function getOrganizeTargets() {
+  const onlyMissing = document.getElementById('orgOnlyMissing')?.checked ?? true;
+  const onlyInbox = document.getElementById('orgOnlyInbox')?.checked ?? false;
+  const intents = ['할일', '아이디어', '참고', '질문', '기록'];
+  return items.filter(it => {
+    if (onlyInbox && it.status !== 'inbox') return false;
+    if (onlyMissing) {
+      const tags = it.tags || [];
+      const hasIntent = tags.some(t => intents.includes(t));
+      const hasSummary = !!(it.summary && it.summary.trim());
+      // 의도 태그가 없거나, 요약이 없거나, 태그가 1개 이하면 대상
+      if (hasIntent && hasSummary && tags.length >= 2) return false;
+    }
+    // 텍스트가 거의 없는 항목은 제외
+    const content = (it.summary || it.text || '').trim();
+    if (content.length < 2) return false;
+    return true;
+  });
+}
+
+function updateOrganizePreview() {
+  const targets = getOrganizeTargets();
+  document.getElementById('orgTargetCount').textContent = `${targets.length}개`;
+  const seconds = Math.ceil(targets.length * 0.8);
+  let timeText = '-';
+  if (targets.length === 0) timeText = '정리할 게 없어요';
+  else if (seconds < 60) timeText = `약 ${seconds}초`;
+  else timeText = `약 ${Math.ceil(seconds / 60)}분`;
+  document.getElementById('orgEstTime').textContent = timeText;
+
+  const startBtn = document.getElementById('orgStartBtn');
+  startBtn.disabled = targets.length === 0;
+  startBtn.style.opacity = targets.length === 0 ? '0.5' : '1';
+}
+
+function openOrganizeModal() {
+  if (!getApiKey()) {
+    showToast('먼저 API 키를 입력해주세요');
+    document.getElementById('apiKeyBanner').classList.remove('collapsed');
+    return;
+  }
+  if (items.length === 0) {
+    showToast('정리할 항목이 없어요');
+    return;
+  }
+  document.getElementById('organizeBody').style.display = '';
+  document.getElementById('organizeProgress').style.display = 'none';
+  document.getElementById('orgStartBtn').style.display = '';
+  document.getElementById('orgCancelBtn').textContent = '취소';
+  organizeAbort = false;
+  updateOrganizePreview();
+  document.getElementById('organizeModal').classList.add('show');
+}
+
+function closeOrganizeModal() {
+  if (document.getElementById('organizeProgress').style.display !== 'none') {
+    organizeAbort = true;
+    return;
+  }
+  document.getElementById('organizeModal').classList.remove('show');
+}
+
+async function startBulkOrganize() {
+  const targets = getOrganizeTargets();
+  if (targets.length === 0) return;
+
+  document.getElementById('organizeBody').style.display = 'none';
+  document.getElementById('organizeProgress').style.display = '';
+  document.getElementById('orgStartBtn').style.display = 'none';
+  document.getElementById('orgCancelBtn').textContent = '중지';
+
+  let done = 0, failed = 0;
+  organizeAbort = false;
+
+  for (const target of targets) {
+    if (organizeAbort) break;
+    try {
+      const content = (target.summary || target.text || '').slice(0, 1000);
+      const result = await classifyText(content);
+      const idx = items.findIndex(x => x.id === target.id);
+      if (idx > -1) {
+        // 기존 summary가 비어있으면만 새로 채움 (사용자 편집 보호)
+        if (!items[idx].summary || items[idx].summary.trim() === '') {
+          items[idx].summary = result.summary || '';
+        }
+        items[idx].tags = normalizeAiResult(result);
+      }
+      done++;
+    } catch (e) {
+      console.error('정리 오류', e);
+      failed++;
+    }
+
+    const progress = Math.round(((done + failed) / targets.length) * 100);
+    document.getElementById('orgProgressBar').style.width = `${progress}%`;
+    document.getElementById('orgProgressText').textContent =
+      `${done + failed} / ${targets.length} 처리 중${failed > 0 ? ` (실패 ${failed})` : ''}`;
+
+    // 매 10개마다 저장 (중간에 끊겨도 진행분 보존)
+    if ((done + failed) % 10 === 0) save();
+  }
+
+  save();
+  render();
+  document.getElementById('organizeModal').classList.remove('show');
+
+  if (organizeAbort) {
+    showToast(`중지됨 · ${done}개 정리 완료`);
+  } else if (failed > 0) {
+    showToast(`${done}개 정리 완료, ${failed}개 실패`);
+  } else {
+    showToast(`✨ ${done}개 항목을 정리했어요`);
+  }
+}
+
 function renderTagBar() {
   const tags = allTags();
   const wrap = document.getElementById('tagBarWrap');
   if (tags.length === 0) { wrap.style.display = 'none'; return; }
   wrap.style.display = '';
-  document.getElementById('tagBar').innerHTML = tags.map(([t, c]) => `
-    <button class="tchip ${activeTags.has(t) ? 'active' : ''}" onclick="toggleTagFilter('${escapeAttr(t)}')">
+  const intentClassMap = {
+    '할일': 'intent-todo', '아이디어': 'intent-idea', '참고': 'intent-ref',
+    '질문': 'intent-q', '기록': 'intent-log'
+  };
+  // 의도 태그를 앞으로 정렬
+  const intentOrder = ['할일', '아이디어', '참고', '질문', '기록'];
+  const sortedTags = [...tags].sort((a, b) => {
+    const ai = intentOrder.indexOf(a[0]);
+    const bi = intentOrder.indexOf(b[0]);
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+    return b[1] - a[1];
+  });
+  document.getElementById('tagBar').innerHTML = sortedTags.map(([t, c]) => {
+    const cls = intentClassMap[t] || '';
+    return `
+    <button class="tchip ${cls} ${activeTags.has(t) ? 'active' : ''}" onclick="toggleTagFilter('${escapeAttr(t)}')">
       #${escapeHtml(t)} <span class="tchip-count">${c}</span>
-    </button>
-  `).join('');
+    </button>`;
+  }).join('');
   document.getElementById('tagClearBtn').style.display = activeTags.size > 0 ? '' : 'none';
 }
 
@@ -1248,9 +1474,14 @@ function renderItem(item) {
     stateClass = 'done'; stateTitle = '클릭: 인박스로';
   }
 
-  const tagsHtml = (item.tags || []).map(t =>
-    `<span class="item-tag" onclick="toggleTagFilter('${escapeAttr(t)}')">#${escapeHtml(t)}</span>`
-  ).join('');
+  const intentClassMap = {
+    '할일': 'intent-todo', '아이디어': 'intent-idea', '참고': 'intent-ref',
+    '질문': 'intent-q', '기록': 'intent-log'
+  };
+  const tagsHtml = (item.tags || []).map(t => {
+    const cls = intentClassMap[t] || '';
+    return `<span class="item-tag ${cls}" onclick="toggleTagFilter('${escapeAttr(t)}')">#${escapeHtml(t)}</span>`;
+  }).join('');
 
   const timeDisplay = days >= 1 ? `${days}일 전` : (item.time || '');
 
