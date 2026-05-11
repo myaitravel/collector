@@ -545,6 +545,7 @@
       <div class="api-row">
         <input id="apiKeyInput" type="password" placeholder="sk-ant-...">
         <button class="btn-add" onclick="saveApiKey()" style="padding:8px 14px">저장</button>
+        <button class="btn-add" onclick="clearApiKey()" style="padding:8px 14px;background:var(--danger)">초기화</button>
       </div>
       <div style="font-size:11px;color:var(--text3);margin-top:6px">기기에만 저장돼요</div>
     </div>
@@ -699,6 +700,14 @@ function saveApiKey() {
   s.textContent = "✓ 저장됨"; s.classList.add('ok');
   showToast('API 키가 저장됐어요');
   setTimeout(() => document.getElementById('apiKeyBanner').classList.add('collapsed'), 600);
+}
+function clearApiKey() {
+  if (!confirm('API 키를 초기화할까요?')) return;
+  localStorage.removeItem('clipApiKey');
+  document.getElementById('apiKeyInput').value = '';
+  const s = document.getElementById('apiKeyStatus');
+  s.textContent = '미설정'; s.classList.remove('ok');
+  showToast('API 키가 초기화됐어요');
 }
 function initApiKeyUI() {
   const k = getApiKey();
