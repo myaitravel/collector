@@ -31,7 +31,7 @@
   }
 
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
       --bg: #0a0a0a;
       --surface: #161616;
       --surface2: #1f1f1f;
@@ -46,6 +46,22 @@
       --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
       --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
     }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0a0a0a;
+    --surface: #161616;
+    --surface2: #1f1f1f;
+    --surface3: #2a2a2a;
+    --border: rgba(255,255,255,0.06);
+    --border2: rgba(255,255,255,0.14);
+    --text: #fafafa;
+    --text2: #a1a1aa;
+    --text3: #71717a;
+    --accent: #3b82f6;
+    --accent-soft: rgba(59, 130, 246, 0.14);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
   }
 
   html { -webkit-text-size-adjust: 100%; }
@@ -141,20 +157,33 @@
   }
   .insight-btn.primary:hover { background: #92400e; }
   @media (prefers-color-scheme: dark) {
-    .insight {
+    :root:not([data-theme="light"]) .insight {
       background: linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.15) 100%);
       color: #fcd34d;
     }
-    .insight-btn {
+    :root:not([data-theme="light"]) .insight-btn {
       border-color: rgba(252, 211, 77, 0.25);
       background: rgba(252, 211, 77, 0.08); color: #fcd34d;
     }
-    .insight-btn:hover { background: rgba(252, 211, 77, 0.18); }
-    .insight-btn.primary {
+    :root:not([data-theme="light"]) .insight-btn:hover { background: rgba(252, 211, 77, 0.18); }
+    :root:not([data-theme="light"]) .insight-btn.primary {
       background: #fcd34d; color: #422006; border-color: #fcd34d;
     }
-    .insight-btn.primary:hover { background: #fde68a; }
+    :root:not([data-theme="light"]) .insight-btn.primary:hover { background: #fde68a; }
   }
+  [data-theme="dark"] .insight {
+    background: linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.15) 100%);
+    color: #fcd34d;
+  }
+  [data-theme="dark"] .insight-btn {
+    border-color: rgba(252, 211, 77, 0.25);
+    background: rgba(252, 211, 77, 0.08); color: #fcd34d;
+  }
+  [data-theme="dark"] .insight-btn:hover { background: rgba(252, 211, 77, 0.18); }
+  [data-theme="dark"] .insight-btn.primary {
+    background: #fcd34d; color: #422006; border-color: #fcd34d;
+  }
+  [data-theme="dark"] .insight-btn.primary:hover { background: #fde68a; }
 
   .input-card {
     background: var(--surface); border: 1px solid var(--border);
@@ -312,12 +341,17 @@
   .tchip.intent-q:not(.active)    { color: #7c3aed; border-color: rgba(124, 58, 237, 0.25); }
   .tchip.intent-log:not(.active)  { color: #16a34a; border-color: rgba(22, 163, 74, 0.25); }
   @media (prefers-color-scheme: dark) {
-    .tchip.intent-todo:not(.active) { color: #fca5a5; border-color: rgba(248, 113, 113, 0.3); }
-    .tchip.intent-idea:not(.active) { color: #fcd34d; border-color: rgba(251, 191, 36, 0.3); }
-    .tchip.intent-ref:not(.active)  { color: #93c5fd; border-color: rgba(96, 165, 250, 0.3); }
-    .tchip.intent-q:not(.active)    { color: #c4b5fd; border-color: rgba(167, 139, 250, 0.35); }
-    .tchip.intent-log:not(.active)  { color: #86efac; border-color: rgba(74, 222, 128, 0.3); }
+    :root:not([data-theme="light"]) .tchip.intent-todo:not(.active) { color: #fca5a5; border-color: rgba(248, 113, 113, 0.3); }
+    :root:not([data-theme="light"]) .tchip.intent-idea:not(.active) { color: #fcd34d; border-color: rgba(251, 191, 36, 0.3); }
+    :root:not([data-theme="light"]) .tchip.intent-ref:not(.active)  { color: #93c5fd; border-color: rgba(96, 165, 250, 0.3); }
+    :root:not([data-theme="light"]) .tchip.intent-q:not(.active)    { color: #c4b5fd; border-color: rgba(167, 139, 250, 0.35); }
+    :root:not([data-theme="light"]) .tchip.intent-log:not(.active)  { color: #86efac; border-color: rgba(74, 222, 128, 0.3); }
   }
+  [data-theme="dark"] .tchip.intent-todo:not(.active) { color: #fca5a5; border-color: rgba(248, 113, 113, 0.3); }
+  [data-theme="dark"] .tchip.intent-idea:not(.active) { color: #fcd34d; border-color: rgba(251, 191, 36, 0.3); }
+  [data-theme="dark"] .tchip.intent-ref:not(.active)  { color: #93c5fd; border-color: rgba(96, 165, 250, 0.3); }
+  [data-theme="dark"] .tchip.intent-q:not(.active)    { color: #c4b5fd; border-color: rgba(167, 139, 250, 0.35); }
+  [data-theme="dark"] .tchip.intent-log:not(.active)  { color: #86efac; border-color: rgba(74, 222, 128, 0.3); }
   .tchip-count { font-size: 10px; opacity: 0.7; }
 
   .toolbar {
@@ -531,6 +565,9 @@
       <div class="app-title">콜렉터</div>
     </div>
     <div class="app-actions">
+      <button class="icon-btn" id="themeBtn" title="다크/라이트 모드" onclick="toggleTheme()">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
       <button class="icon-btn" id="aiOrganizeBtn" title="AI로 정리하기" onclick="openOrganizeModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6z"/></svg>
       </button>
@@ -1613,6 +1650,34 @@ document.addEventListener('keydown', e => {
   const statusMap = { '1': 'inbox', '2': 'archived', '3': 'done', '4': 'all' };
   if (statusMap[e.key]) setStatus(statusMap[e.key], null);
 });
+
+// ── 테마 토글 ──
+function getSystemTheme() {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme(theme) {
+  const root = document.documentElement;
+  const icon = document.getElementById('themeIcon');
+  if (theme === 'dark') {
+    root.setAttribute('data-theme', 'dark');
+    icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+  } else {
+    root.setAttribute('data-theme', 'light');
+    icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  }
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || getSystemTheme();
+  const next = current === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('clipTheme', next);
+  applyTheme(next);
+  showToast(next === 'dark' ? '🌙 다크 모드' : '☀️ 라이트 모드');
+}
+function initTheme() {
+  const saved = localStorage.getItem('clipTheme');
+  applyTheme(saved || getSystemTheme());
+}
+initTheme();
 
 initApiKeyUI();
 render();
